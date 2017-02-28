@@ -41,11 +41,11 @@
 #include <realsense_camera/zr300_paramsConfig.h>
 #include <realsense_camera/IMUInfo.h>
 #include <realsense_camera/GetIMUInfo.h>
-#include <realsense_camera/base_nodelet.h>
+#include <realsense_camera/r200_nodelet.h>
 
 namespace realsense_camera
 {
-class ZR300Nodelet: public realsense_camera::BaseNodelet
+class ZR300Nodelet: public realsense_camera::R200Nodelet
 {
 public:
   ~ZR300Nodelet();
@@ -70,7 +70,6 @@ protected:
   std::function<void(rs::timestamp_data)> timestamp_handler_;
   std::mutex imu_mutex_;
 
-  rs_extrinsics color2ir2_extrinsic_;      // color frame is base frame
   rs_extrinsics color2fisheye_extrinsic_;  // color frame is base frame
   rs_extrinsics color2imu_extrinsic_;      // color frame is base frame
 
@@ -81,8 +80,6 @@ protected:
   bool getIMUInfo(realsense_camera::GetIMUInfo::Request & req, realsense_camera::GetIMUInfo::Response & res);
   std::vector<std::string> setDynamicReconfServer();
   void startDynamicReconfCallback();
-  void setDynamicReconfigDepthControlPreset(int preset);
-  std::string setDynamicReconfigDepthControlIndividuals();
   void configCallback(realsense_camera::zr300_paramsConfig &config, uint32_t level);
   void getCameraExtrinsics();
   void publishStaticTransforms();
@@ -91,7 +88,7 @@ protected:
   void setStreams();
   void setIMUCallbacks();
   void setFrameCallbacks();
-  std::function<void(rs::frame f)> fisheye_frame_handler_, ir2_frame_handler_;
+  std::function<void(rs::frame f)> fisheye_frame_handler_;
   void stopIMU();
 };
 }  // namespace realsense_camera

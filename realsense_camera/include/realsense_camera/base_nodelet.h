@@ -95,7 +95,6 @@ protected:
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
   ros::Time camera_start_ts_;
-  ros::Publisher pointcloud_publisher_;
   ros::ServiceServer get_options_service_;
   ros::ServiceServer set_power_service_;
   ros::ServiceServer force_power_service_;
@@ -124,7 +123,6 @@ protected:
   image_transport::CameraPublisher camera_publisher_[STREAM_COUNT] = {};
   sensor_msgs::CameraInfoPtr camera_info_ptr_[STREAM_COUNT] = {};
   std::string base_frame_id_;
-  float max_z_ = -1.0f;
   bool enable_pointcloud_;
   bool enable_tf_;
   bool enable_tf_dynamic_;
@@ -168,7 +166,6 @@ protected:
   virtual ros::Time getTimestamp(rs_stream stream_index, double frame_ts);
   virtual void publishTopic(rs_stream stream_index, rs::frame &  frame);
   virtual void setImageData(rs_stream stream_index, rs::frame &  frame);
-  virtual void publishPCTopic();
   virtual void getCameraExtrinsics();
   virtual void publishStaticTransforms();
   virtual void publishDynamicTransforms();

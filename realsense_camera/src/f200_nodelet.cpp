@@ -57,8 +57,6 @@ namespace realsense_camera
     cv_type_[RS_STREAM_INFRARED] = CV_8UC1;
     unit_step_size_[RS_STREAM_INFRARED] = sizeof(unsigned char);
 
-    max_z_ = F200_MAX_Z;
-
     BaseNodelet::onInit();
   }
 

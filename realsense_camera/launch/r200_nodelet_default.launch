@@ -9,10 +9,10 @@
   <!-- These 'arg' tags are just place-holders for passing values from test files.
   The recommended way is to pass the values directly into the 'param' tags. -->
   <arg name="mode"              default="manual" />
-  <arg name="color_fps"         default="30" />
+  <arg name="rgb_fps"           default="30" />
 
   <param name="$(arg camera)/driver/mode"              type="str"  value="$(arg mode)" />
-  <param name="$(arg camera)/driver/color_fps"         type="int"  value="$(arg color_fps)" />
+  <param name="$(arg camera)/driver/color_fps"         type="int"  value="$(arg rgb_fps)" />
   <!-- Refer to the Wiki http://wiki.ros.org/realsense_camera for list of supported parameters -->
 
   <group ns="$(arg camera)">

@@ -56,8 +56,6 @@ namespace realsense_camera
     cv_type_[RS_STREAM_INFRARED] = CV_16UC1;
     unit_step_size_[RS_STREAM_INFRARED] = sizeof(uint16_t);
 
-    max_z_ = SR300_MAX_Z;
-
     BaseNodelet::onInit();
   }
 

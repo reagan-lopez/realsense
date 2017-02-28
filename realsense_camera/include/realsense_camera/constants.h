@@ -68,17 +68,15 @@ namespace realsense_camera
     const std::string DEFAULT_COLOR_OPTICAL_FRAME_ID = "camera_rgb_optical_frame";
     const std::string DEFAULT_IR_OPTICAL_FRAME_ID = "camera_ir_optical_frame";
     const std::string DEPTH_NAMESPACE = "depth";
-    const std::string DEPTH_TOPIC = "image_raw";
-    const std::string PC_TOPIC = "points";
-    const std::string COLOR_NAMESPACE = "color";
-    const std::string COLOR_TOPIC = "image_raw";
+    const std::string IMAGE_RAW = "image_raw";
+    const std::string IMAGE_RECT = "image_rect";
+    const std::string COLOR_NAMESPACE = "rgb";
     const std::string IR_NAMESPACE = "ir";
-    const std::string IR_TOPIC = "image_raw";
     const std::string SETTINGS_SERVICE = "get_settings";
     const std::string CAMERA_IS_POWERED_SERVICE = "is_powered";
     const std::string CAMERA_SET_POWER_SERVICE = "set_power";
     const std::string CAMERA_FORCE_POWER_SERVICE = "force_power";
-    const std::string STREAM_DESC[STREAM_COUNT] = {"Depth", "Color", "IR", "IR2", "Fisheye"};
+    const std::string STREAM_DESC[STREAM_COUNT] = {"Depth", "RGB", "IR", "IR2", "Fisheye"};
     const int EVENT_COUNT = 2;
     const double ROTATION_IDENTITY[] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     const float MILLIMETER_METERS  = 0.001;
@@ -91,25 +89,20 @@ namespace realsense_camera
 
     // R200 Constants.
     // Indoor Range: 0.7m - 3.5m, Outdoor Range: 10m
-    const float R200_MAX_Z = 10.0f;   // in meters
     const std::string R200_CAMERA_FW_VERSION = "1.0.72.06";
     // F200 Constants.
     // Indoor Range: 0.2m – 1.0m, Outdoor Range: n/a
-    const float F200_MAX_Z = 1.0f;    // in meters
     const std::string F200_CAMERA_FW_VERSION = "2.60.0.0";
 
     // SR300 Constants.
     // Indoor Range: 0.2m – 1.5m, Outdoor Range: n/a
-    const float SR300_MAX_Z = 1.5f;   // in meters
     const std::string SR300_CAMERA_FW_VERSION = "3.10.10.0";
 
     // ZR300 Constants.
     // Indoor Range: 0.7m - 3.5m, Outdoor Range: 10m
-    const float ZR300_MAX_Z = 10.0f;  // in meters
     const std::string FISHEYE_NAMESPACE = "fisheye";
-    const std::string FISHEYE_TOPIC = "image_raw";
     const std::string IMU_NAMESPACE = "imu";
-    const std::string IMU_TOPIC = "data_raw";
+    const std::string DATA_RAW = "data_raw";
     const std::string IMU_INFO_SERVICE = "get_imu_info";
     const std::string DEFAULT_FISHEYE_FRAME_ID = "camera_fisheye_frame";
     const std::string DEFAULT_IMU_FRAME_ID = "camera_imu_frame";
