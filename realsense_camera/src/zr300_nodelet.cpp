@@ -373,7 +373,7 @@ namespace realsense_camera
 
     fisheye_frame_handler_ = [&](rs::frame frame)  // NOLINT(build/c++11)
     {
-      publishTopic(RS_STREAM_FISHEYE, frame);
+      publishStreamTopic(RS_STREAM_FISHEYE, frame);
     };
 
     rs_set_frame_callback_cpp(rs_device_, RS_STREAM_FISHEYE,

@@ -194,7 +194,7 @@ namespace realsense_camera
 
     ir2_frame_handler_ = [&](rs::frame  frame)  // NOLINT(build/c++11)
     {
-      publishTopic(RS_STREAM_INFRARED2, frame);
+      publishStreamTopic(RS_STREAM_INFRARED2, frame);
     };
 
     rs_set_frame_callback_cpp(rs_device_, RS_STREAM_INFRARED2, new rs::frame_callback(ir2_frame_handler_), &rs_error_);

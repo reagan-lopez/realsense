@@ -360,6 +360,8 @@ namespace realsense_camera
     image_transport::ImageTransport depth_image_transport(depth_nh);
     camera_publisher_[RS_STREAM_DEPTH] = depth_image_transport.advertiseCamera(IMAGE_RECT, 1);
 
+    min_depth_pub_ = depth_nh.advertise<std_msgs::UInt16>(DATA_MIN, 1);
+
     ros::NodeHandle ir_nh(nh_, IR_NAMESPACE);
     image_transport::ImageTransport ir_image_transport(ir_nh);
     camera_publisher_[RS_STREAM_INFRARED] = ir_image_transport.advertiseCamera(IMAGE_RECT, 1);
@@ -413,6 +415,10 @@ namespace realsense_camera
       {
         return true;
       }
+    }
+    if (min_depth_pub_.getNumSubscribers() > 0)
+    {
+      return true;
     }
     return false;
   }
@@ -571,17 +577,17 @@ namespace realsense_camera
   {
     depth_frame_handler_ = [&](rs::frame frame)  // NOLINT(build/c++11)
     {
-      publishTopic(RS_STREAM_DEPTH, frame);
+      publishStreamTopic(RS_STREAM_DEPTH, frame);
     };
 
     color_frame_handler_ = [&](rs::frame frame)  // NOLINT(build/c++11)
     {
-      publishTopic(RS_STREAM_COLOR, frame);
+      publishStreamTopic(RS_STREAM_COLOR, frame);
     };
 
     ir_frame_handler_ = [&](rs::frame frame)  // NOLINT(build/c++11)
     {
-      publishTopic(RS_STREAM_INFRARED, frame);
+      publishStreamTopic(RS_STREAM_INFRARED, frame);
     };
 
     rs_set_frame_callback_cpp(rs_device_, RS_STREAM_DEPTH, new rs::frame_callback(depth_frame_handler_), &rs_error_);
@@ -644,8 +650,6 @@ namespace realsense_camera
       // Allocate image resources
       getStreamCalibData(stream_index);
       step_[stream_index] = camera_info_ptr_[stream_index]->width * unit_step_size_[stream_index];
-      image_[stream_index] = cv::Mat(camera_info_ptr_[stream_index]->height,
-          camera_info_ptr_[stream_index]->width, cv_type_[stream_index], cv::Scalar(0, 0, 0));
     }
     ts_[stream_index] = -1;
   }
@@ -785,35 +789,6 @@ namespace realsense_camera
     return "Camera is already Stopped";
   }
 
-
-  /*
-   * Copy frame data from realsense to member cv images.
-   */
-  void BaseNodelet::setImageData(rs_stream stream_index, rs::frame & frame)
-  {
-    if (stream_index == RS_STREAM_DEPTH)
-    {
-      // fill depth buffer
-      image_depth16_ = reinterpret_cast<const uint16_t *>(frame.get_data());
-      float depth_scale_meters = rs_get_device_depth_scale(rs_device_, &rs_error_);
-      if (depth_scale_meters == MILLIMETER_METERS)
-      {
-        image_[stream_index].data = (unsigned char *) image_depth16_;
-      }
-      else
-      {
-        cvWrapper_ = cv::Mat(image_[stream_index].size(), cv_type_[stream_index],
-            const_cast<void *>(reinterpret_cast<const void *>(image_depth16_)), step_[stream_index]);
-        cvWrapper_.convertTo(image_[stream_index], cv_type_[stream_index],
-            static_cast<double>(depth_scale_meters) / static_cast<double>(MILLIMETER_METERS));
-      }
-    }
-    else
-    {
-      image_[stream_index].data = (unsigned char *) (frame.get_data());
-    }
-  }
-
   /*
    * Set depth enable
    */
@@ -854,9 +829,9 @@ namespace realsense_camera
   }
 
   /*
-   * Publish topic.
+   * Publish native stream topic.
    */
-  void BaseNodelet::publishTopic(rs_stream stream_index, rs::frame &frame) try
+  void BaseNodelet::publishStreamTopic(rs_stream stream_index, rs::frame &frame) try
   {
     // mutex to ensure only one frame per stream is processed at a time
     std::unique_lock<std::mutex> lock(frame_mutex_[stream_index]);
@@ -864,18 +839,47 @@ namespace realsense_camera
     double frame_ts = frame.get_timestamp();
     if (ts_[stream_index] != frame_ts)  // Publish frames only if its not duplicate
     {
-      setImageData(stream_index, frame);
+      cv::Mat image_mat = cv::Mat(camera_info_ptr_[stream_index]->height,
+                camera_info_ptr_[stream_index]->width, cv_type_[stream_index], cv::Scalar(0, 0, 0));
+      image_mat.data = (unsigned char *) (frame.get_data());
+      if (stream_index == RS_STREAM_DEPTH)
+      {
+        float depth_scale_meters = rs_get_device_depth_scale(rs_device_, &rs_error_);
+        if (depth_scale_meters != MILLIMETER_METERS) // if depth is not in mm
+        {
+          // scale depth to mm
+          image_mat.convertTo(image_mat,
+                           cv_type_[stream_index],
+                           static_cast<double>(depth_scale_meters) / static_cast<double>(MILLIMETER_METERS));
+        }
+        if (min_depth_pub_.getNumSubscribers() > 0)
+        {
+          std_msgs::UInt16 min_depth;
+          min_depth.data = 65535;
+          cv::MatConstIterator_<uint16_t> it = image_mat.begin<uint16_t>();
+          cv::MatConstIterator_<uint16_t> it_end = image_mat.end<uint16_t>();
+          for (; it != it_end; ++it)
+          {
+            if ((*it < min_depth.data) && (*it > 0))
+            {
+              min_depth.data = *it;
+            }
+          }
+          min_depth_pub_.publish(min_depth);
+        }
+      }
+
       // Publish stream only if there is at least one subscriber.
       if (camera_publisher_[stream_index].getNumSubscribers() > 0)
       {
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(),
-                        encoding_[stream_index],
-                                image_[stream_index]).toImageMsg();
+                                                       encoding_[stream_index],
+                                                       image_mat).toImageMsg();
         msg->header.frame_id = optical_frame_id_[stream_index];
         // Publish timestamp to synchronize frames.
         msg->header.stamp = getTimestamp(stream_index, frame_ts);
-        msg->width = image_[stream_index].cols;
-        msg->height = image_[stream_index].rows;
+        msg->width = image_mat.cols;
+        msg->height = image_mat.rows;
         msg->is_bigendian = false;
         msg->step = step_[stream_index];
         camera_info_ptr_[stream_index]->header.stamp = msg->header.stamp;

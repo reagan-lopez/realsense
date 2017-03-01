@@ -70,6 +70,7 @@ namespace realsense_camera
     const std::string DEPTH_NAMESPACE = "depth";
     const std::string IMAGE_RAW = "image_raw";
     const std::string IMAGE_RECT = "image_rect";
+    const std::string DATA_MIN = "data_min";
     const std::string COLOR_NAMESPACE = "rgb";
     const std::string IR_NAMESPACE = "ir";
     const std::string SETTINGS_SERVICE = "get_settings";

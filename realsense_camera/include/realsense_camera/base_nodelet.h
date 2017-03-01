@@ -54,10 +54,9 @@
 
 #include <ros/ros.h>
 #include <nodelet/nodelet.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/image_encodings.h>
-#include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_msgs/String.h>
+#include <std_msgs/UInt16.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <image_transport/image_transport.h>
 #include <camera_info_manager/camera_info_manager.h>
@@ -119,9 +118,9 @@ protected:
   double ts_[STREAM_COUNT];
   std::string frame_id_[STREAM_COUNT];
   std::string optical_frame_id_[STREAM_COUNT];
-  cv::Mat image_[STREAM_COUNT] = {};
   image_transport::CameraPublisher camera_publisher_[STREAM_COUNT] = {};
   sensor_msgs::CameraInfoPtr camera_info_ptr_[STREAM_COUNT] = {};
+  ros::Publisher min_depth_pub_;
   std::string base_frame_id_;
   bool enable_pointcloud_;
   bool enable_tf_;
@@ -164,8 +163,7 @@ protected:
   virtual std::string startCamera();
   virtual std::string stopCamera();
   virtual ros::Time getTimestamp(rs_stream stream_index, double frame_ts);
-  virtual void publishTopic(rs_stream stream_index, rs::frame &  frame);
-  virtual void setImageData(rs_stream stream_index, rs::frame &  frame);
+  virtual void publishStreamTopic(rs_stream stream_index, rs::frame &  frame);
   virtual void getCameraExtrinsics();
   virtual void publishStaticTransforms();
   virtual void publishDynamicTransforms();
